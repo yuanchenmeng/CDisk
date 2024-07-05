@@ -15,7 +15,11 @@ TcpClient::TcpClient(QWidget *parent)
     loadConfig();
 
     connect(&m_tcpSocket, SIGNAL(connected()), this, SLOT(showConnect()));
+    connect(&m_tcpSocket, SIGNAL(readyRead()), this, SLOT(recvMsg()));
+
+
     m_tcpSocket.connectToHost(QHostAddress(m_strIP), m_usPort);
+
 
 }
 
@@ -51,6 +55,39 @@ void TcpClient::showConnect()
 
 }
 
+void TcpClient::recvMsg()
+{
+    
+    uint uiPDULen = 0;
+    m_tcpSocket.read((char*)&uiPDULen, sizeof(uint));
+    uint uiMsgLen = uiPDULen - sizeof(PDU);
+    PDU * pdu = mkPDU(uiMsgLen);
+    m_tcpSocket.read((char*)pdu + sizeof(uint), uiPDULen - sizeof(uint));
+    //qDebug() << pdu->uiMsgType << " --> " << (char*) pdu -> caMsg;
+
+    switch (pdu->uiMsgType){
+        case ENUM_MSG_TYPE_REGISTER_RESPOND:
+        {
+            if (0 == strcmp(pdu->caData, "Register is OK ! !")){
+                QMessageBox::information(this, "Regis", "Register Sucessful");
+            }
+            else if (0 == strcmp(pdu->caData, "Register ff")){
+                QMessageBox::information(this, "Regis", "Error");
+            }
+            else{
+                QMessageBox::information(this, "Regis", "SSS Error");
+            }
+            break;
+        }
+        default:
+            break;
+    }
+
+    free(pdu);
+    pdu = NULL;
+
+}
+
 void TcpClient::on_send_pb_clicked()
 {
     QString strMsg = ui->lineEdit->text();
@@ -66,5 +103,42 @@ void TcpClient::on_send_pb_clicked()
     else{
         QMessageBox::warning(this, "info send", "info send can't be empty");
     }
+}
+
+
+void TcpClient::on_login_pb_clicked()
+{
+
+}
+
+
+void TcpClient::on_regist_pb_clicked()
+{
+    QString strName = ui->name_le->text();
+    QString strPwd = ui->pwd_le->text();
+    if (!strName.isEmpty() && ! strPwd.isEmpty()){
+        
+        PDU *pdu = mkPDU(0);
+        pdu->uiMsgType = ENUM_MSG_TYPE_REGISTER_REQUEST;
+        strncpy(pdu->caData, strName.toStdString().c_str(), 32);
+        strncpy(pdu->caData + 32, strPwd.toStdString().c_str(), 32);
+
+        m_tcpSocket.write((char*) pdu, pdu->uiPDULen);
+        free(pdu);
+        pdu = NULL;
+
+
+
+    }
+    else{
+        QMessageBox::critical(this, "Regis", "Regis F1");
+    }
+
+}
+
+
+void TcpClient::on_cancel_pb_clicked()
+{
+
 }
 

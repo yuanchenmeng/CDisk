@@ -14,6 +14,8 @@ public:
     void init();
     ~ OpeDB();
 
+    bool handleRegist(const char* name, const char* pwd);
+
 signals:
 public slots:
 private:

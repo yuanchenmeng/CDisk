@@ -13,6 +13,7 @@ TcpServer::TcpServer(QWidget *parent)
 {
     ui->setupUi(this);
     loadConfig();
+    OpeDB::getInstance().init();
     MyTcpServer::getInstance().listen(QHostAddress(m_strIP), m_usPort);
 }
 

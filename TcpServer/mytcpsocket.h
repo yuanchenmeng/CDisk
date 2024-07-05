@@ -1,8 +1,9 @@
 #ifndef MYTCPSOCKET_H
 #define MYTCPSOCKET_H
 
-#include "protocal.h"
 #include <QTcpSocket>
+#include "protocal.h"
+#include "opedb.h"
 
 class MyTcpSocket : public QTcpSocket
 {

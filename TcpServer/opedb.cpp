@@ -1,6 +1,8 @@
 #include "opedb.h"
 #include <QMessageBox>
 #include <QDebug>
+#include <QSqlError>
+#include <QSqlQuery>
 
 OpeDB::OpeDB(QObject *parent)
     : QObject{parent}
@@ -27,4 +29,20 @@ void OpeDB::init(){
 
 OpeDB::~OpeDB(){
     m_db.close();
+}
+
+
+bool OpeDB::handleRegist(const char* name, const char* pwd){
+    if (name == NULL || pwd == NULL){return false   ;}
+    QString data = QString(
+                       "insert into userInfo(name, pwd) values(\'%1\', \'%2\')"
+                       ).arg(name).arg(pwd);
+    QSqlQuery query;
+    qDebug() << "Query " << data;
+    if (!query.exec(data)) {
+        qDebug() << "Error: " << query.lastError().text();
+        return false;
+    }
+    return true;
+    //return query.exec(data);
 }
