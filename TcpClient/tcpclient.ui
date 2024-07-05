@@ -13,6 +13,39 @@
   <property name="windowTitle">
    <string>TcpClient</string>
   </property>
+  <widget class="QPushButton" name="send_pb">
+   <property name="geometry">
+    <rect>
+     <x>290</x>
+     <y>190</y>
+     <width>151</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Send</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineEdit">
+   <property name="geometry">
+    <rect>
+     <x>190</x>
+     <y>121</y>
+     <width>391</width>
+     <height>41</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QTextEdit" name="textEdit">
+   <property name="geometry">
+    <rect>
+     <x>180</x>
+     <y>40</y>
+     <width>391</width>
+     <height>64</height>
+    </rect>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>

@@ -21,6 +21,9 @@ public:
     void loadConfig();
 public slots:
     void showConnect();
+private slots:
+    void on_send_pb_clicked();
+
 private:
     Ui::TcpClient *ui;
     QString m_strIP;

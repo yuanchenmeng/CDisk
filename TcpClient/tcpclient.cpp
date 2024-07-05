@@ -1,5 +1,6 @@
 #include "tcpclient.h"
 #include "./ui_tcpclient.h"
+#include "protocal.h"
 
 #include <QByteArray>
 #include <QDebug>
@@ -49,3 +50,21 @@ void TcpClient::showConnect()
     QMessageBox::information(this, "Connect", "Connect Sucessfull");
 
 }
+
+void TcpClient::on_send_pb_clicked()
+{
+    QString strMsg = ui->lineEdit->text();
+    qDebug() << "Msg Got: " << strMsg;
+    if (!strMsg.isEmpty()){
+        PDU* pdu = mkPDU(strMsg.size());
+        pdu->uiMsgType = 8888;
+        memcpy(pdu->caMsg, strMsg.toStdString().c_str(), strMsg.size());
+        m_tcpSocket.write((char*) pdu, pdu->uiPDULen);
+        free(pdu);
+        pdu = NULL;
+    }
+    else{
+        QMessageBox::warning(this, "info send", "info send can't be empty");
+    }
+}
+
