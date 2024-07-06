@@ -19,4 +19,31 @@ void MyTcpServer::incomingConnection(qintptr socketDescriptor) {
     pTcpSocket->setSocketDescriptor(socketDescriptor);
     m_tcpSocketList.append(pTcpSocket);
 
+    connect(pTcpSocket, SIGNAL(offline(MyTcpSocket*)), this, SLOT(deleteSocket(MyTcpSocket*)));
+}
+
+
+
+void MyTcpServer::deleteSocket(MyTcpSocket* mysocket) {
+    qDebug() << "A client disconnecting";
+
+    qDebug() << "User List: \n";
+    for (int i = 0; i < m_tcpSocketList.size(); i++){
+        qDebug() << m_tcpSocketList.at(i)->getName();
+    }
+    qDebug() << "EOL \n";
+
+    QList<MyTcpSocket*>::iterator iter = m_tcpSocketList.begin();
+    for (; iter != m_tcpSocketList.end(); iter++){
+        if (mysocket == *iter){
+            m_tcpSocketList.erase(iter);
+            //(*iter) -> deleteLater();
+            delete *iter;
+            *iter = NULL;
+            break;
+        }
+    }
+
+
+
 }

@@ -79,6 +79,19 @@ void TcpClient::recvMsg()
             }
             break;
         }
+        case ENUM_MSG_TYPE_LOGIN_RESPOND:
+        {
+            if (0 == strcmp(pdu->caData, "Login is OK ! !")){
+                QMessageBox::information(this, "Lgt", "Login Sucessful");
+            }
+            else if (0 == strcmp(pdu->caData, "Login ff")){
+                QMessageBox::information(this, "Lgt", "Error");
+            }
+            else{
+                QMessageBox::information(this, "Lgt", "SSS Error");
+            }
+            break;
+        }
         default:
             break;
     }
@@ -109,6 +122,23 @@ void TcpClient::on_send_pb_clicked()
 void TcpClient::on_login_pb_clicked()
 {
 
+    QString strName = ui->name_le->text();
+    QString strPwd = ui->pwd_le->text();
+    if (!strName.isEmpty() && ! strPwd.isEmpty()){
+        PDU *pdu = mkPDU(0);
+        pdu->uiMsgType = ENUM_MSG_TYPE_LOGIN_REQUEST;
+        strncpy(pdu->caData, strName.toStdString().c_str(), 32);
+        strncpy(pdu->caData + 32, strPwd.toStdString().c_str(), 32);
+
+        m_tcpSocket.write((char*) pdu, pdu->uiPDULen);
+        free(pdu);
+        pdu = NULL;
+
+    }
+    else{
+        QMessageBox::critical(this, "Login", "Login F1");
+    }
+
 }
 
 
@@ -126,8 +156,6 @@ void TcpClient::on_regist_pb_clicked()
         m_tcpSocket.write((char*) pdu, pdu->uiPDULen);
         free(pdu);
         pdu = NULL;
-
-
 
     }
     else{

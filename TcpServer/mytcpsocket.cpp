@@ -5,6 +5,8 @@ MyTcpSocket::MyTcpSocket(QObject *parent)
     : QTcpSocket{parent}
 {
     connect(this, SIGNAL(readyRead()), this, SLOT(recvMsg()));
+
+    connect(this, SIGNAL(disconnected()), this, SLOT(clientOffline()));
 }
 
 void MyTcpSocket::recvMsg(){
@@ -39,6 +41,30 @@ void MyTcpSocket::recvMsg(){
             break;
 
         }
+
+        case ENUM_MSG_TYPE_LOGIN_REQUEST:
+        {
+            char caName[32] = {'\0'};
+            char caPwd[32] = {'\0'};
+            strncpy(caName, pdu->caData, 32);
+            strncpy(caPwd, pdu->caData + 32, 32);
+            //qDebug() << caName << caPwd << pdu->uiMsgType;
+            bool ret = OpeDB::getInstance().handleLogin(caName, caPwd);
+            PDU * respdu = mkPDU(0);
+            respdu->uiMsgType = ENUM_MSG_TYPE_LOGIN_RESPOND;
+            if (ret){
+                strcpy(respdu->caData, "Login is OK ! !");
+                m_strName = caName;
+            }
+            else{strcpy(respdu->caData, "Login ff");}
+
+            write((char*)respdu, respdu->uiPDULen);
+            free(respdu);
+            respdu = NULL;
+
+            break;
+
+        }
         default:
             break;
 
@@ -47,4 +73,15 @@ void MyTcpSocket::recvMsg(){
     free(pdu);
     pdu = NULL;
 
+}
+
+
+
+void MyTcpSocket::clientOffline(){
+    OpeDB::getInstance().handleOffline(m_strName.toStdString().c_str());
+    emit offline(this);
+}
+
+QString MyTcpSocket::getName(){
+    return m_strName;
 }

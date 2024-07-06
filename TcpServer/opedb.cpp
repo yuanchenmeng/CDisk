@@ -20,7 +20,7 @@ void OpeDB::init(){
     m_db.setHostName("localhost");
     m_db.setDatabaseName("E:\\CloudDisk\\TcpServer\\cloud.db");
     if (m_db.open()){
-        qDebug() << " looks good?";
+        qDebug() << "DB Init looks good?, m_db is open";
     }
     else{
         QMessageBox::critical(NULL, "open db", "open db failed");
@@ -45,4 +45,43 @@ bool OpeDB::handleRegist(const char* name, const char* pwd){
     }
     return true;
     //return query.exec(data);
+}
+
+
+bool OpeDB::handleLogin(const char* name, const char* pwd){
+    if (name == NULL || pwd == NULL){return false   ;}
+    QString data = QString(
+                       "select * from userInfo where name = \'%1\' and pwd = \'%2\' and online = 0"
+                       ).arg(name).arg(pwd);
+    QSqlQuery query;
+    qDebug() << "DBCMD: Online Set " << data;
+
+    if (!query.exec(data)) {
+        qDebug() << "Error: " << query.lastError().text();
+        return false;
+    }
+
+    if (query.next()){
+        data = QString("update userInfo set online = 1 where name = \'%1\' and pwd = \'%2\' ")
+        .arg(name).arg(pwd);
+        QSqlQuery query;
+        query.exec(data);
+        return true;
+    }
+    else{return false;}
+}
+
+
+void OpeDB::handleOffline(const char* name){
+    if (name == NULL){return;}
+    QString data = QString(
+                       "update userInfo set online = 0 where name = \'%1\'"
+                       ).arg(name);
+    QSqlQuery query;
+    qDebug() << "DBCMD: Offline Set " << data;
+    if (!query.exec(data)) {
+        qDebug() << "Error: " << query.lastError().text();
+        return;
+    }
+    return;
 }
