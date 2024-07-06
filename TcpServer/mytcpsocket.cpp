@@ -84,6 +84,28 @@ void MyTcpSocket::recvMsg(){
             break;
         }
 
+        case ENUM_MSG_TYPE_SEARCH_USR_REQUEST:
+        {
+            int ret = OpeDB::getInstance().handleSearchUsr(pdu->caData);
+            PDU *respdu = mkPDU(0);
+            respdu->uiMsgType = ENUM_MSG_TYPE_SEARCH_USR_RESPOND;
+
+            if (ret == -1){
+                strcpy(respdu->caData, "Not Find");
+            }
+            else if (ret == 1){
+                strcpy(respdu->caData, "Find Online");
+            }
+            else{
+                strcpy(respdu->caData, "Find OffLine");
+            }
+            
+            write((char*)respdu, respdu->uiPDULen);
+            free(respdu);
+            respdu = NULL;
+            break;
+        }
+
 
         default:
             break;

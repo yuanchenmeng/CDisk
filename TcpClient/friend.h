@@ -19,10 +19,12 @@ class Friend : public QWidget
 public:
     explicit Friend(QWidget *parent = nullptr);
     void showAllOnlineUsr(PDU *pdu);
+    QString m_strSearchName;
 
 signals:
 public slots:
     void showOnline();
+    void searchUsr();
 private:
     QTextEdit *m_pShowMsgTe;
     QListWidget *m_pFriendListWidget;
@@ -36,6 +38,7 @@ private:
     QPushButton *m_pPrivateChatPB;
 
     Online *m_pOnline;
+    
 };
 
 #endif // FRIEND_H

@@ -103,6 +103,23 @@ void TcpClient::recvMsg()
             showAllOnlineUsr(pdu);
 
         }
+
+
+        case ENUM_MSG_TYPE_SEARCH_USR_RESPOND:
+        {
+            if (0 == strcmp(pdu->caData, "Not Find")){
+                QMessageBox::information(this, "User Search", "Not Find");
+
+            }
+            else if (0 == strcmp(pdu->caData, "Find Online")){
+                QMessageBox::information(this, "User Search", "Find1");
+            }
+            else{
+                QMessageBox::information(this, "User Search", "Find2");
+            }
+            break;
+
+        }
         default:
             break;
     }
