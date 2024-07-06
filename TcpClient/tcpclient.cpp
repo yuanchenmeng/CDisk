@@ -83,6 +83,9 @@ void TcpClient::recvMsg()
         {
             if (0 == strcmp(pdu->caData, "Login is OK ! !")){
                 QMessageBox::information(this, "Lgt", "Login Sucessful");
+                OpeWidget::getInstance().show();
+                this->hide();
+
             }
             else if (0 == strcmp(pdu->caData, "Login ff")){
                 QMessageBox::information(this, "Lgt", "Error");
@@ -91,6 +94,14 @@ void TcpClient::recvMsg()
                 QMessageBox::information(this, "Lgt", "SSS Error");
             }
             break;
+        }
+
+
+        case ENUM_MSG_TYPE_ALL_ONLINE_RESPOND:
+        {
+            OpeWidget::getInstance().getFriend()->
+            showAllOnlineUsr(pdu);
+
         }
         default:
             break;
@@ -170,3 +181,13 @@ void TcpClient::on_cancel_pb_clicked()
 
 }
 
+TcpClient &TcpClient::getInstance()
+{
+    static TcpClient instance;
+    return instance;
+}
+
+
+QTcpSocket &TcpClient::getTcpSocket(){
+    return m_tcpSocket;
+}

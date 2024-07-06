@@ -5,6 +5,8 @@
 #include <QFile>
 #include <QTcpSocket>
 
+#include "opewidget.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class TcpClient;
@@ -19,6 +21,9 @@ public:
     TcpClient(QWidget *parent = nullptr);
     ~TcpClient();
     void loadConfig();
+
+    static TcpClient &getInstance();
+    QTcpSocket &getTcpSocket();
 public slots:
     void showConnect();
     void recvMsg();
