@@ -24,6 +24,7 @@ public:
 
     static TcpClient &getInstance();
     QTcpSocket &getTcpSocket();
+    QString loginName();
 public slots:
     void showConnect();
     void recvMsg();
@@ -42,5 +43,6 @@ private:
     quint16 m_usPort;
 
     QTcpSocket m_tcpSocket;
+    QString m_strLoginName; 
 };
 #endif // TCPCLIENT_H

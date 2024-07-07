@@ -1,4 +1,5 @@
 #include "mytcpsocket.h"
+#include "mytcpserver.h"
 #include <QDebug>
 
 MyTcpSocket::MyTcpSocket(QObject *parent)
@@ -103,6 +104,79 @@ void MyTcpSocket::recvMsg(){
             write((char*)respdu, respdu->uiPDULen);
             free(respdu);
             respdu = NULL;
+            break;
+        }
+
+
+        case ENUM_MSG_TYPE_ADD_FRIEND_REQUEST:
+        {
+            char caPerName[32] = {'\0'};
+            char caName[32] = {'\0'};
+            strncpy(caPerName, pdu->caData, 32);
+            strncpy(caName, pdu->caData + 32, 32);
+            int ret = OpeDB::getInstance().handleAddFriend(caPerName, caName);
+
+            PDU* respdu = NULL;
+            if (-1 == ret){
+                respdu = mkPDU(0);
+                respdu->uiMsgType = ENUM_MSG_TYPE_ADD_FRIEND_RESPOND;
+                strcpy(respdu->caData, "Type -1 Error");
+                write((char*)respdu, respdu->uiPDULen);
+                free(respdu);
+                respdu = NULL;
+
+            }
+            else if (0 == ret){
+                respdu = mkPDU(0);
+                respdu->uiMsgType = ENUM_MSG_TYPE_ADD_FRIEND_RESPOND;
+                strcpy(respdu->caData, "Type 0 Error");
+                write((char*)respdu, respdu->uiPDULen);
+                free(respdu);
+                respdu = NULL;
+            }
+            else if (1 == ret){
+                MyTcpServer::getInstance().resend(caPerName, pdu);
+                respdu = mkPDU(0);
+                respdu->uiMsgType = ENUM_MSG_TYPE_ADD_FRIEND_RESPOND;
+                strcpy(respdu->caData, "Valid Request, exists & online");
+                write((char*)respdu, respdu->uiPDULen);
+                free(respdu);
+                respdu = NULL;
+            }
+            else if (2 == ret){
+                respdu = mkPDU(0);
+                respdu->uiMsgType = ENUM_MSG_TYPE_ADD_FRIEND_RESPOND;
+                strcpy(respdu->caData, "Type 2 Error");
+                write((char*)respdu, respdu->uiPDULen);
+                free(respdu);
+                respdu = NULL;
+            }
+            else if (3 == ret){
+                respdu = mkPDU(0);
+                respdu->uiMsgType = ENUM_MSG_TYPE_ADD_FRIEND_RESPOND;
+                strcpy(respdu->caData, "Type 3 Error");
+                write((char*)respdu, respdu->uiPDULen);
+                free(respdu);
+                respdu = NULL;
+            }
+            break;
+        }
+
+        case ENUM_MSG_TYPE_ADD_FRIEND_AGREE:
+        {
+            char addedName[32] = {'\0'};
+            char sourceName[32] = {'\0'};
+            strncpy(addedName, pdu -> caData, 32);
+            strncpy(sourceName, pdu -> caData + 32, 32);
+            OpeDB::getInstance().handleAddFriendAgree(addedName, sourceName);
+            MyTcpServer::getInstance().resend(sourceName, pdu);
+            break;
+        }
+        case ENUM_MSG_TYPE_ADD_FRIEND_REJECT: 
+        {
+            char sourceName[32] = {'\0'};
+            strncpy(sourceName, pdu -> caData + 32, 32);
+            MyTcpServer::getInstance().resend(sourceName, pdu);
             break;
         }
 

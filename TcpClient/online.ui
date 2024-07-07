@@ -36,7 +36,7 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QPushButton" name="addfriend_pb">
+      <widget class="QPushButton" name="addFriend_pb">
        <property name="font">
         <font>
          <family>Adobe Devanagari</family>

@@ -13,6 +13,7 @@ public:
 
     static MyTcpServer &getInstance();
     virtual void incomingConnection(qintptr socketDescriptor);
+    void resend(const char* pername, PDU* pdu);
 public slots:
     void deleteSocket(MyTcpSocket *mysocket);
 private:

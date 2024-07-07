@@ -22,6 +22,9 @@ public:
     QStringList handleAllOnline();
     int handleSearchUsr(const char* name);
 
+    int handleAddFriend(const char *addedName, const char *sourceName);
+    bool handleAddFriendAgree(const char *addedName, const char *sourceName); 
+    int getIdByUserName(const char *name);
 
 signals:
 public slots:

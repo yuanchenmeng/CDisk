@@ -115,3 +115,59 @@ int OpeDB::handleSearchUsr(const char* name){
     }
     return -1;
 }
+
+
+int OpeDB::handleAddFriend(const char* addedName, const char* sourceName){
+    if(NULL == addedName || NULL == sourceName){return 4;}
+    QString data = 
+    QString("select * from friend where (id = (select id from userInfo where name = \'%1\') and friendId = (select id from userInfo where name = \'%2\')) or " 
+    "(id = (select id from userInfo where name = \'%3\') and "
+    "friendId = (select id from userInfo where name = \'%4\'))")
+            .arg(sourceName).arg(addedName).arg(addedName).arg(sourceName);
+    qDebug() << data;
+    QSqlQuery query;
+    query.exec(data);
+    if(query.next()){
+        return 3;
+    }
+    else{
+        return handleSearchUsr(addedName);
+    }
+}
+
+bool OpeDB::handleAddFriendAgree(const char *addedName, const char *sourceName)
+{
+    if(NULL == addedName || NULL == sourceName){
+        //qDebug() << "handleAddFriendAgree: name is NULL";
+        return false;
+    }
+
+    int sourceUserId = -1; 
+    int addedUserId = -1;
+
+
+    addedUserId = getIdByUserName(addedName);
+    sourceUserId = getIdByUserName(sourceName);
+
+    QString strQuery = QString("insert into friendInfo values(%1, %2) ").arg(sourceUserId).arg(addedUserId);
+    QSqlQuery query;
+
+    qDebug() << "DBCMD: handleAddFriendAgree " << strQuery;
+
+    return query.exec(strQuery);
+}
+
+int OpeDB::getIdByUserName(const char *name)
+{
+    if(NULL == name){return -1;}
+
+    QString strQuery = QString("select id from userInfo where name = \'%1\' ").arg(name);
+    QSqlQuery query;
+
+    query.exec(strQuery);
+    if(query.next()){
+        return query.value(0).toInt();
+    }
+    return -1;
+
+}

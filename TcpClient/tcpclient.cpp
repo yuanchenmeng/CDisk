@@ -118,8 +118,45 @@ void TcpClient::recvMsg()
                 QMessageBox::information(this, "User Search", "Find2");
             }
             break;
-
         }
+
+        case ENUM_MSG_TYPE_ADD_FRIEND_REQUEST:
+        {
+            char sourceName[32]; 
+            strncpy(sourceName, pdu -> caData + 32, 32);
+            int ret = QMessageBox::information(this, "New Friend Request", 
+            QString("Add %1 as Friend?").arg(sourceName), QMessageBox::Yes, QMessageBox::No);
+    
+            PDU* resPdu = mkPDU(0);
+            strncpy(resPdu -> caData, pdu -> caData, 32); // Respond
+            strncpy(resPdu -> caData + 32, pdu -> caData + 32, 32); // Apply
+            // qDebug() << "friend request info" << resPdu -> caData << " " << resPdu -> caData + 32;
+            resPdu->uiMsgType = ret == QMessageBox::Yes ? 
+            ENUM_MSG_TYPE_ADD_FRIEND_AGREE : ENUM_MSG_TYPE_ADD_FRIEND_REJECT;
+            m_tcpSocket.write((char*)resPdu, resPdu -> uiPDULen);
+            break;
+        }
+
+        
+        case ENUM_MSG_TYPE_ADD_FRIEND_RESPOND:
+        {
+            QMessageBox::information(this, "Add Friend", pdu -> caData);
+            break;
+        }
+
+        case ENUM_MSG_TYPE_ADD_FRIEND_AGREE: 
+        {
+            QMessageBox::information(this, "Add Friend", QString("%1 added as friend").arg(pdu -> caData));
+            break;
+        }
+
+        case ENUM_MSG_TYPE_ADD_FRIEND_REJECT: 
+        {
+            QMessageBox::information(this, "Add Friend", QString("%1 disapproved your request!!!").arg(pdu -> caData));
+            break;
+        }
+
+
         default:
             break;
     }
@@ -153,6 +190,7 @@ void TcpClient::on_login_pb_clicked()
     QString strName = ui->name_le->text();
     QString strPwd = ui->pwd_le->text();
     if (!strName.isEmpty() && ! strPwd.isEmpty()){
+        m_strLoginName = strName;
         PDU *pdu = mkPDU(0);
         pdu->uiMsgType = ENUM_MSG_TYPE_LOGIN_REQUEST;
         strncpy(pdu->caData, strName.toStdString().c_str(), 32);
@@ -207,4 +245,8 @@ TcpClient &TcpClient::getInstance()
 
 QTcpSocket &TcpClient::getTcpSocket(){
     return m_tcpSocket;
+}
+
+QString TcpClient::loginName(){
+    return m_strLoginName;
 }
