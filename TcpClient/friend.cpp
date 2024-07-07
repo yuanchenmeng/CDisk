@@ -46,8 +46,8 @@ Friend::Friend(QWidget *parent)
     setLayout(pMain);
 
     connect(m_pShowOnlineUsrPB, SIGNAL(clicked(bool)), this, SLOT(showOnline()));
-    connect(m_pSearchUsrPB, SIGNAL(clicked(bool)),
-    this, SLOT(searchUsr()));
+    connect(m_pSearchUsrPB, SIGNAL(clicked(bool)), this, SLOT(searchUsr()));
+    connect(m_pFlushFriendPB, SIGNAL(clicked(bool)), this, SLOT(flushFriendList()));
     
 }
 
@@ -88,4 +88,29 @@ void Friend::searchUsr(){
         pdu = NULL;
 
     }
+}
+
+void Friend::updateFriendList(PDU *pdu){
+    if(NULL == pdu) {return;}
+    uint uiSize = pdu -> uiMsgLen / 36;
+    char caName[32] = {'\0'};
+    char caOnline[4] = {'\0'};
+
+    m_pFriendListWidget -> clear();
+    for(uint i = 0; i < uiSize; ++ i){
+        memcpy(caName, (char*)(pdu -> caMsg) + i * 36, 32);
+        memcpy(caOnline, (char*)(pdu -> caMsg) + 32 + i * 36, 4);
+        m_pFriendListWidget -> addItem(QString("%1\t%2").arg(caName)
+            .arg(strcmp(caOnline, "1") == 0?"Online":"Offline"));
+    }
+}
+
+void Friend::flushFriendList(){
+    QString strName = TcpClient::getInstance().loginName();
+    PDU* pdu = mkPDU(0);
+    pdu -> uiMsgType = ENUM_MSG_TYPE_FLSUH_FRIEND_REQUEST;
+    strncpy(pdu -> caData, strName.toStdString().c_str(), strName.size());
+    TcpClient::getInstance().getTcpSocket().write((char*)pdu, pdu -> uiPDULen);
+    free(pdu);
+    pdu = NULL;
 }

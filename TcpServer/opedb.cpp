@@ -171,3 +171,34 @@ int OpeDB::getIdByUserName(const char *name)
     return -1;
 
 }
+
+
+QStringList OpeDB::handleFlushFriendRequest(const char *name){
+    QStringList strFriendList;
+    strFriendList.clear();
+    if (NULL == name){return strFriendList;}
+
+    QString strQuery = QString("select id from userInfo where name = \'%1\' and online = 1 ").arg(name);
+    QSqlQuery query;
+    int iId = -1;
+    query.exec(strQuery);
+    if (query.next()){
+        iId = query.value(0).toInt();
+    }
+
+    strQuery = QString("select name, online from userInfo where id in "
+                       "((select friendId from friendinfo "
+                       "where id = %1) union (select id from friendinfo "
+                       "where friendId = %2))").arg(iId).arg(iId);
+    query.exec(strQuery);
+    while(query.next()){
+        char friName[32];
+        char friOnline[4];
+        strncpy(friName, query.value(0).toString().toStdString().c_str(), 32);
+        strncpy(friOnline, query.value(1).toString().toStdString().c_str(), 4);
+        strFriendList.append(friName);
+        strFriendList.append(friOnline);
+    }
+
+    return strFriendList;
+}

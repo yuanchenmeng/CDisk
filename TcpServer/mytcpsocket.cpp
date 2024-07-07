@@ -179,6 +179,26 @@ void MyTcpSocket::recvMsg(){
             MyTcpServer::getInstance().resend(sourceName, pdu);
             break;
         }
+        case ENUM_MSG_TYPE_FLSUH_FRIEND_REQUEST: 
+        {
+            char caName[32] = {'\0'};
+            strncpy(caName, pdu -> caData, 32);
+
+            QStringList strList = OpeDB::getInstance().handleFlushFriendRequest(caName);
+            uint uiMsgLen = strList.size() / 2 * 36;
+
+            PDU* respdu = mkPDU(uiMsgLen);
+            respdu -> uiMsgType = ENUM_MSG_TYPE_FLUSH_FRIEND_RESPOND;
+            for(int i = 0; i * 2 < strList.size(); ++ i){
+                strncpy((char*)(respdu -> caMsg) + 36 * i, strList.at(i * 2).toStdString().c_str(), 32);
+                strncpy((char*)(respdu -> caMsg) + 36 * i + 32, strList.at(i * 2 + 1).toStdString().c_str(), 4);
+            }
+            write((char*)respdu, respdu->uiPDULen);
+            free(respdu);
+            respdu = NULL;
+
+            break;
+        }
 
 
         default:

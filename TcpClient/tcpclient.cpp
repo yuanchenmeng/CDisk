@@ -84,6 +84,7 @@ void TcpClient::recvMsg()
             if (0 == strcmp(pdu->caData, "Login is OK ! !")){
                 QMessageBox::information(this, "Lgt", "Login Sucessful");
                 OpeWidget::getInstance().show();
+                OpeWidget::getInstance().getFriend() -> flushFriendList();
                 this->hide();
 
             }
@@ -126,7 +127,7 @@ void TcpClient::recvMsg()
             strncpy(sourceName, pdu -> caData + 32, 32);
             int ret = QMessageBox::information(this, "New Friend Request", 
             QString("Add %1 as Friend?").arg(sourceName), QMessageBox::Yes, QMessageBox::No);
-    
+
             PDU* resPdu = mkPDU(0);
             strncpy(resPdu -> caData, pdu -> caData, 32); // Respond
             strncpy(resPdu -> caData + 32, pdu -> caData + 32, 32); // Apply
@@ -153,6 +154,12 @@ void TcpClient::recvMsg()
         case ENUM_MSG_TYPE_ADD_FRIEND_REJECT: 
         {
             QMessageBox::information(this, "Add Friend", QString("%1 disapproved your request!!!").arg(pdu -> caData));
+            break;
+        }
+
+        case ENUM_MSG_TYPE_FLUSH_FRIEND_RESPOND:
+        {
+            OpeWidget::getInstance().getFriend()->updateFriendList(pdu);
             break;
         }
 

@@ -20,11 +20,14 @@ public:
     explicit Friend(QWidget *parent = nullptr);
     void showAllOnlineUsr(PDU *pdu);
     QString m_strSearchName;
+    void setOnlineUsers(PDU* pdu);
+    void updateFriendList(PDU *pdu);
 
 signals:
 public slots:
     void showOnline();
     void searchUsr();
+    void flushFriendList();       
 private:
     QTextEdit *m_pShowMsgTe;
     QListWidget *m_pFriendListWidget;

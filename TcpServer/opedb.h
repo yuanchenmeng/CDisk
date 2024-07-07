@@ -25,6 +25,7 @@ public:
     int handleAddFriend(const char *addedName, const char *sourceName);
     bool handleAddFriendAgree(const char *addedName, const char *sourceName); 
     int getIdByUserName(const char *name);
+    QStringList handleFlushFriendRequest(const char *name);
 
 signals:
 public slots:
