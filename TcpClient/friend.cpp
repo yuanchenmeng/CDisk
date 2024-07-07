@@ -48,6 +48,7 @@ Friend::Friend(QWidget *parent)
     connect(m_pShowOnlineUsrPB, SIGNAL(clicked(bool)), this, SLOT(showOnline()));
     connect(m_pSearchUsrPB, SIGNAL(clicked(bool)), this, SLOT(searchUsr()));
     connect(m_pFlushFriendPB, SIGNAL(clicked(bool)), this, SLOT(flushFriendList()));
+    connect(m_pDelFriendPB, SIGNAL(clicked(bool)), this, SLOT(deleteFriend()));
     
 }
 
@@ -110,6 +111,26 @@ void Friend::flushFriendList(){
     PDU* pdu = mkPDU(0);
     pdu -> uiMsgType = ENUM_MSG_TYPE_FLSUH_FRIEND_REQUEST;
     strncpy(pdu -> caData, strName.toStdString().c_str(), strName.size());
+    TcpClient::getInstance().getTcpSocket().write((char*)pdu, pdu -> uiPDULen);
+    free(pdu);
+    pdu = NULL;
+}
+
+
+void Friend::deleteFriend(){
+    if(NULL == m_pFriendListWidget -> currentItem()){
+        return;
+    }
+
+    QString friName = m_pFriendListWidget -> currentItem() -> text();
+    friName = friName.split("\t")[0];
+    QString loginName = TcpClient::getInstance().loginName();
+
+    qDebug() << friName;
+    PDU* pdu = mkPDU(0);
+    pdu -> uiMsgType = ENUM_MSG_TYPE_DELETE_FRIEND_REQUEST;
+    strncpy(pdu -> caData, friName.toStdString().c_str(), 32);
+    strncpy(pdu -> caData + 32, loginName.toStdString().c_str(), 32);
     TcpClient::getInstance().getTcpSocket().write((char*)pdu, pdu -> uiPDULen);
     free(pdu);
     pdu = NULL;

@@ -163,6 +163,19 @@ void TcpClient::recvMsg()
             break;
         }
 
+        case ENUM_MSG_TYPE_DELETE_FRIEND_RESPOND:
+        {
+            QMessageBox::information(this, "DEL Friend", pdu -> caData);
+            break;
+        }
+        case ENUM_MSG_TYPE_DELETE_FRIEND_REQUEST:
+        {
+            char sourceName[32];
+            strncpy(sourceName, pdu -> caData + 32, 32);
+            QMessageBox::information(this, "DEL Friend", QString("%1 deleted connection").arg(sourceName));
+            break;
+        }
+
 
         default:
             break;

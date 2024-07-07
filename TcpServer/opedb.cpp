@@ -202,3 +202,26 @@ QStringList OpeDB::handleFlushFriendRequest(const char *name){
 
     return strFriendList;
 }
+
+bool OpeDB::handleDeleteFriend(const char *deletedName, const char *sourceName){
+    if(deletedName == NULL || sourceName == NULL){return false;}
+
+    int iDelId = -1;
+    int iSouId = -1;
+    QString strQuery = QString("select id from userInfo where name in (\'%1\', \'%2\') ")
+        .arg(deletedName).arg(sourceName);
+    QSqlQuery query;
+
+    query.exec(strQuery);
+    if(query.next()){
+        iDelId = query.value(0).toInt();
+    }
+    if(query.next()){
+        iSouId = query.value(0).toInt();
+    }
+
+    strQuery = QString("delete from friendInfo where id in (\'%1\', \'%2\') and friendId in (\'%3\', \'%4\') ")
+        .arg(iDelId).arg(iSouId).arg(iDelId).arg(iSouId);
+
+    return query.exec(strQuery);
+}

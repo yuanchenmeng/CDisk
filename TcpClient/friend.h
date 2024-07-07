@@ -22,12 +22,14 @@ public:
     QString m_strSearchName;
     void setOnlineUsers(PDU* pdu);
     void updateFriendList(PDU *pdu);
+    
 
 signals:
 public slots:
     void showOnline();
     void searchUsr();
-    void flushFriendList();       
+    void flushFriendList();
+    void deleteFriend();  
 private:
     QTextEdit *m_pShowMsgTe;
     QListWidget *m_pFriendListWidget;
