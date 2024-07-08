@@ -288,6 +288,7 @@ void MyTcpSocket::recvMsg(){
 
                 resPdu = mkPDU(sizeof(FileInfo) * iFileNum);
                 FileInfo *pFileInfo = NULL;
+                strncpy(resPdu -> caData, FLUSH_DIR_OK, 32);
 
                 for(int i = 0; i < iFileNum; ++ i){
                     pFileInfo = (FileInfo*)(resPdu -> caMsg) + i; // Every shift is (FileInfo*) amount
@@ -412,11 +413,62 @@ void MyTcpSocket::recvMsg(){
                         QString strLastTime = dtLastTime.toString("yyyy/MM/dd hh:mm");
                         memcpy(pFileInfo -> caTime, strLastTime.toStdString().c_str(), strLastTime.size());
                     }
-                    resPdu -> uiMsgType = ENUM_MSG_TYPE_FLUSH_DIR_RESPOND; // use FLUSH TYPE
+                    strncpy(resPdu -> caData, ENTRY_DIR_OK, 32);
+                    resPdu -> uiMsgType = ENUM_MSG_TYPE_ENTRY_DIR_RESPOND;
 
                 }
             }
 
+            write((char*)resPdu, resPdu->uiPDULen);
+            free(resPdu);
+            resPdu = NULL;
+            break;
+        }
+
+
+        case ENUM_MSG_TYPE_PRE_DIR_REQUEST:
+        {
+            char strPrePath[pdu -> uiMsgLen];
+            memcpy(strPrePath, (char*)pdu -> caMsg, pdu -> uiMsgLen);
+            qDebug() << "Prev Dir: " << strPrePath;
+            PDU* resPdu = NULL;
+            QDir dir(strPrePath);
+
+            if(!dir.exists()) {
+                resPdu = mkPDU(0);
+                strncpy(resPdu -> caData, PATH_NOT_EXIST, 32);
+            }
+            else { // Same as Flush Dir
+                char caCurDir[pdu -> uiMsgLen];
+                memcpy(caCurDir, (char*)pdu -> caMsg, pdu -> uiMsgLen);
+                QDir dir;
+                dir.setPath(caCurDir);
+                QFileInfoList fileInfoList = dir.entryInfoList(); 
+                int iFileNum = fileInfoList.size();
+                resPdu = mkPDU(sizeof(FileInfo) * iFileNum);
+                FileInfo *pFileInfo = NULL;
+                strncpy(resPdu -> caData, FLUSH_DIR_OK, 32);
+                for(int i = 0; i < iFileNum; ++ i){
+                    pFileInfo = (FileInfo*)(resPdu -> caMsg) + i;
+                    memcpy(pFileInfo -> caName, fileInfoList[i].fileName().toStdString().c_str(), fileInfoList[i].fileName().size());
+                    pFileInfo -> bIsDir = fileInfoList[i].isDir();
+                    pFileInfo -> uiSize = fileInfoList[i].size();
+                    QDateTime dtLastTime = fileInfoList[i].lastModified();
+                    QString strLastTime = dtLastTime.toString("yyyy/MM/dd hh:mm");
+                    memcpy(pFileInfo -> caTime, strLastTime.toStdString().c_str(), strLastTime.size());
+                }
+                resPdu -> uiMsgType = ENUM_MSG_TYPE_FLUSH_DIR_RESPOND; // use FLUSH TYPE
+            }
+            resPdu -> uiMsgType = ENUM_MSG_TYPE_PRE_DIR_RESPOND;
+            qDebug() << "1 resPdu -> caData: " << resPdu -> caData;
+            //if(strcmp(resPdu -> caData, FLUSH_DIR_OK) == 0){
+            strncpy(resPdu -> caData, PRE_DIR_OK, 32);
+                //qDebug() << "2 resPdu -> caData: " << resPdu -> caData;
+            //}
+            //else{
+            //    strncpy(resPdu -> caData, PRE_DIR_FAILED, 32);
+            //    qDebug() << "2 resPdu -> caData: " << resPdu -> caData;
+            //}
             write((char*)resPdu, resPdu->uiPDULen);
             free(resPdu);
             resPdu = NULL;

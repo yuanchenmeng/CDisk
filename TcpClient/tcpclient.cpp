@@ -208,7 +208,39 @@ void TcpClient::recvMsg()
 
         case ENUM_MSG_TYPE_ENTRY_DIR_RESPOND:
         {
-            QMessageBox::warning(this, "Cd Req", pdu -> caData);
+            qDebug() << "Client: Entry Dir: " << pdu -> caData;
+            if(strcmp(ENTRY_DIR_OK, pdu -> caData) == 0){
+                OpeWidget::getInstance().getPFileSystem() -> updateFileList(pdu);
+                QString entryPath = OpeWidget::getInstance().getPFileSystem()->strTryEntryDir();
+                if(!entryPath.isEmpty())
+                {
+                    m_strCurPath = entryPath;
+                    OpeWidget::getInstance().getPFileSystem()->clearStrTryEntryDir();
+                    qDebug() << "Cur Path: " << m_strCurPath;
+                }
+            }
+            else{
+                QMessageBox::warning(this, "Change Directory: cd", pdu -> caData);
+            }
+            break;
+        }
+
+        case ENUM_MSG_TYPE_PRE_DIR_RESPOND:
+        {
+            qDebug() << "Prev Dir Resp: " << pdu -> caData;
+            if(strcmp(PRE_DIR_OK, pdu -> caData) == 0){
+                OpeWidget::getInstance().getPFileSystem() -> updateFileList(pdu);
+                QString entryPath = OpeWidget::getInstance().getPFileSystem()->strTryEntryDir();
+                if(!entryPath.isEmpty())
+                {
+                    m_strCurPath = entryPath;
+                    OpeWidget::getInstance().getPFileSystem()->clearStrTryEntryDir();
+                    qDebug() << "Cur Dir" << m_strCurPath;
+                }
+            }
+            else{
+                QMessageBox::warning(this, "Change Directory: cd ..", pdu -> caData);
+            }
             break;
         }
 

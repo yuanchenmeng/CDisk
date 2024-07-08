@@ -16,6 +16,7 @@ public:
     void updateFileList(PDU* pdu);
     QString strTryEntryDir() const;
     void setStrTryEntryDir(const QString &strTryEntryDir);
+    void clearStrTryEntryDir();
 
 public slots:
     void createDir();
@@ -23,6 +24,7 @@ public slots:
     void delFileOrDir(); 
     void renameFile();
     void entryDir(const QModelIndex &index);
+    void returnPreDir();
 signals:
 private:
     QListWidget *m_pFileListW;     

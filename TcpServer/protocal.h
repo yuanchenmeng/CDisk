@@ -21,7 +21,8 @@ typedef unsigned int uint;
 #define RENAME_FILE_FAILED "rename file failed"
 #define ENTRY_DIR_OK "entry dir ok"
 #define ENTRY_DIR_FAILED "entry dir failed"
-
+#define PRE_DIR_OK "return pre dir ok" 
+#define PRE_DIR_FAILED "return pre dir failed"
 
 
 enum ENUM_MSG_TYPE
@@ -53,6 +54,8 @@ enum ENUM_MSG_TYPE
     ENUM_MSG_TYPE_RENAME_FILE_RESPOND,
     ENUM_MSG_TYPE_ENTRY_DIR_REQUEST,
     ENUM_MSG_TYPE_ENTRY_DIR_RESPOND,
+    ENUM_MSG_TYPE_PRE_DIR_REQUEST,
+    ENUM_MSG_TYPE_PRE_DIR_RESPOND,
     ENUM_MSG_TYPE_MAX = 0x00ffffff,
 };
 

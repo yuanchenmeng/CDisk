@@ -45,6 +45,7 @@ Book::Book(QWidget *parent)
     connect(m_pDelFileOrDirPB, SIGNAL(clicked(bool)), this, SLOT(delFileOrDir()));
     connect(m_pRenameFilePB, SIGNAL(clicked(bool)), this, SLOT(renameFile()));
     connect(m_pFileListW, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(entryDir(QModelIndex)));
+    connect(m_pReturnPrePB, SIGNAL(clicked(bool)), this, SLOT(returnPreDir()));
 }
 
 void Book::createDir(){
@@ -169,6 +170,32 @@ void Book::entryDir(const QModelIndex &index){
     PDU* pdu = mkPDU(strEntryPath.size() + 1);
     pdu -> uiMsgType = ENUM_MSG_TYPE_ENTRY_DIR_REQUEST;
     memcpy((char*)pdu -> caMsg, strEntryPath.toStdString().c_str(), strEntryPath.size());
+    TcpClient::getInstance().getTcpSocket().write((char*)pdu, pdu -> uiPDULen);
+    free(pdu);
+    pdu = NULL;
+}
+
+void Book::clearStrTryEntryDir(){
+    m_strTryEntryDir.clear();
+}
+
+
+void Book::returnPreDir(){
+    QString strCurPath = TcpClient::getInstance().getStrCurPath();
+    QString strRootPath = TcpClient::getInstance().getStrRootPath();
+
+    if(strCurPath == strRootPath){
+        QMessageBox::warning(this, "Change Dir: cd ..", "Root Dir can't go back");
+        return ;
+    }
+    int index = strCurPath.lastIndexOf("/");
+    strCurPath = strCurPath.remove(index, strCurPath.size() - index);
+    qDebug() << "Back to " << strCurPath;
+    m_strTryEntryDir = strCurPath;
+
+    PDU* pdu = mkPDU(strCurPath.size() + 1);
+    pdu -> uiMsgType = ENUM_MSG_TYPE_PRE_DIR_REQUEST;
+    memcpy((char*)pdu -> caMsg, strCurPath.toStdString().c_str(), strCurPath.size());
     TcpClient::getInstance().getTcpSocket().write((char*)pdu, pdu -> uiPDULen);
     free(pdu);
     pdu = NULL;
