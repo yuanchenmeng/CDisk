@@ -200,6 +200,17 @@ void TcpClient::recvMsg()
             break;
         }
 
+        case ENUM_MSG_TYPE_RENAME_FILE_RESPOND:
+        {
+            QMessageBox::information(this, "Rename Ops", pdu -> caData);
+            break;
+        }
+
+        case ENUM_MSG_TYPE_ENTRY_DIR_RESPOND:
+        {
+            QMessageBox::warning(this, "Cd Req", pdu -> caData);
+            break;
+        }
 
         default:
             break;

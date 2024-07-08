@@ -7,6 +7,8 @@
 Book::Book(QWidget *parent)
     : QWidget{parent}
 {
+    m_strTryEntryDir.clear(); // clear temp path variable
+
     m_pFileListW = new QListWidget;
 
     m_pReturnPrePB = new QPushButton("Back");
@@ -38,10 +40,11 @@ Book::Book(QWidget *parent)
 
     setLayout(pMainVBL);
 
-    
     connect(m_pCreateDirPB, SIGNAL(clicked(bool)), this, SLOT(createDir()));
     connect(m_pFlushDirPB, SIGNAL(clicked(bool)), this, SLOT(flushDir()));
     connect(m_pDelFileOrDirPB, SIGNAL(clicked(bool)), this, SLOT(delFileOrDir()));
+    connect(m_pRenameFilePB, SIGNAL(clicked(bool)), this, SLOT(renameFile()));
+    connect(m_pFileListW, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(entryDir(QModelIndex)));
 }
 
 void Book::createDir(){
@@ -114,6 +117,58 @@ void Book::delFileOrDir(){
 
     pdu -> uiMsgType = ENUM_MSG_TYPE_DELETE_FILE_REQUEST;
     memcpy((char*)pdu ->caMsg, strDelPath.toStdString().c_str(), strDelPath.size());
+    TcpClient::getInstance().getTcpSocket().write((char*)pdu, pdu -> uiPDULen);
+    free(pdu);
+    pdu = NULL;
+}
+
+
+QString Book::strTryEntryDir() const{
+    return m_strTryEntryDir;
+}
+
+void Book::setStrTryEntryDir(const QString &strTryEntryDir){
+    m_strTryEntryDir = strTryEntryDir;
+}
+
+
+void Book::renameFile(){
+    QString strCurPath = TcpClient::getInstance().getStrCurPath();
+    QListWidgetItem *qItem = m_pFileListW->currentItem(); // Read current select file/dir 
+    if(NULL == qItem){
+        QMessageBox::warning(this, "Rename Ops", "Pleaase select the file/dir you want to rename!");
+        return;
+    }
+    QString strOldName = qItem -> text().split('\t')[0]; 
+    QString strNewName = QInputDialog::getText(this, "Ops", "Enter New Name"); 
+    qDebug() << "Client Rename Ops:" << strCurPath << " " << strOldName << " -> " << strNewName;
+
+    if(strNewName.isEmpty()){
+        QMessageBox::warning(this, "Ops", "Name can't be empty");
+        return ;
+    }
+
+    PDU *pdu = mkPDU(strCurPath.size() + 1);
+    pdu -> uiMsgType = ENUM_MSG_TYPE_RENAME_FILE_REQUEST;
+    strncpy(pdu -> caData, strOldName.toStdString().c_str(), 32);
+    strncpy(pdu -> caData + 32, strNewName.toStdString().c_str(), 32);
+    memcpy((char*)pdu ->caMsg, strCurPath.toStdString().c_str(), strCurPath.size());
+    TcpClient::getInstance().getTcpSocket().write((char*)pdu, pdu -> uiPDULen);
+    free(pdu);
+    pdu = NULL;
+}
+
+void Book::entryDir(const QModelIndex &index){
+    QString strCurPath = TcpClient::getInstance().getStrCurPath();
+    QString strFileName = index.data().toString();
+    strFileName = strFileName.split('\t')[0];
+    QString strEntryPath = QString("%1/%2").arg(strCurPath).arg(strFileName);
+    qDebug() << "Client Select as new entry: " << strEntryPath;
+    m_strTryEntryDir = strEntryPath;
+
+    PDU* pdu = mkPDU(strEntryPath.size() + 1);
+    pdu -> uiMsgType = ENUM_MSG_TYPE_ENTRY_DIR_REQUEST;
+    memcpy((char*)pdu -> caMsg, strEntryPath.toStdString().c_str(), strEntryPath.size());
     TcpClient::getInstance().getTcpSocket().write((char*)pdu, pdu -> uiPDULen);
     free(pdu);
     pdu = NULL;

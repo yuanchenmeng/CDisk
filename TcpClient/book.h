@@ -14,10 +14,15 @@ class Book : public QWidget
 public:
     explicit Book(QWidget *parent = nullptr);
     void updateFileList(PDU* pdu);
+    QString strTryEntryDir() const;
+    void setStrTryEntryDir(const QString &strTryEntryDir);
+
 public slots:
     void createDir();
     void flushDir();
     void delFileOrDir(); 
+    void renameFile();
+    void entryDir(const QModelIndex &index);
 signals:
 private:
     QListWidget *m_pFileListW;     
@@ -28,7 +33,9 @@ private:
     QPushButton *m_pUploadFilePB;  
     QPushButton *m_pDownloadFilePB;
     QPushButton *m_pDelFileOrDirPB; 
-    QPushButton *m_pShareFilePB;   
+    QPushButton *m_pShareFilePB;
+
+    QString m_strTryEntryDir;         // temp for director entry
 };
 
 #endif // BOOK_H

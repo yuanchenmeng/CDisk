@@ -17,6 +17,12 @@ typedef unsigned int uint;
 #define DEL_FRIEND_FAILED "delete friend failed"
 #define DELETE_FILE_OK "delete file ok"
 #define DELETE_FILE_FAILED "delete file failed"
+#define RENAME_FILE_OK "rename file ok"
+#define RENAME_FILE_FAILED "rename file failed"
+#define ENTRY_DIR_OK "entry dir ok"
+#define ENTRY_DIR_FAILED "entry dir failed"
+
+
 
 enum ENUM_MSG_TYPE
 {
@@ -43,6 +49,10 @@ enum ENUM_MSG_TYPE
     ENUM_MSG_TYPE_FLUSH_DIR_RESPOND,
     ENUM_MSG_TYPE_DELETE_FILE_REQUEST,
     ENUM_MSG_TYPE_DELETE_FILE_RESPOND,
+    ENUM_MSG_TYPE_RENAME_FILE_REQUEST,
+    ENUM_MSG_TYPE_RENAME_FILE_RESPOND,
+    ENUM_MSG_TYPE_ENTRY_DIR_REQUEST,
+    ENUM_MSG_TYPE_ENTRY_DIR_RESPOND,
     ENUM_MSG_TYPE_MAX = 0x00ffffff,
 };
 
