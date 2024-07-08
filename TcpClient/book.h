@@ -12,7 +12,8 @@ class Book : public QWidget
     Q_OBJECT
 public:
     explicit Book(QWidget *parent = nullptr);
-
+public slots:
+    void createDir();
 signals:
 private:
     QListWidget *m_pFileListW;     

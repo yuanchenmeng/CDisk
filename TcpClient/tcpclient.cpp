@@ -87,6 +87,11 @@ void TcpClient::recvMsg()
                 OpeWidget::getInstance().getFriend() -> flushFriendList();
                 this->hide();
 
+                // Save Root Dir logged-in user in tcp client
+                m_strRootPath = QString((char*)pdu -> caMsg);
+                qDebug() << "User Root Dir" << m_strRootPath;
+                m_strCurPath = m_strRootPath;
+
             }
             else if (0 == strcmp(pdu->caData, "Login ff")){
                 QMessageBox::information(this, "Lgt", "Error");
@@ -173,6 +178,12 @@ void TcpClient::recvMsg()
             char sourceName[32];
             strncpy(sourceName, pdu -> caData + 32, 32);
             QMessageBox::information(this, "DEL Friend", QString("%1 deleted connection").arg(sourceName));
+            break;
+        }
+
+        case ENUM_MSG_TYPE_CREATE_DIR_RESPOND: 
+        {
+            QMessageBox::information(this, "Create Folder", pdu -> caData);
             break;
         }
 
@@ -269,4 +280,20 @@ QTcpSocket &TcpClient::getTcpSocket(){
 
 QString TcpClient::loginName(){
     return m_strLoginName;
+}
+
+QString TcpClient::getStrRootPath() const{
+    return m_strRootPath;
+}
+
+void TcpClient::setStrRootPath(const QString &strRootPath){
+    m_strRootPath = strRootPath;
+}
+
+QString TcpClient::getStrCurPath() const{
+    return m_strCurPath;
+}
+
+void TcpClient::setStrCurPath(const QString &strCurPath){
+    m_strCurPath = strCurPath;
 }

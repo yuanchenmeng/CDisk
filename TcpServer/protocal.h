@@ -8,6 +8,10 @@
 
 typedef unsigned int uint;
 
+
+#define PATH_NOT_EXIST "path does not exist"
+#define CREATE_DIR_OK "create dir ok"                    
+#define CREATE_DIR_EXIST "created dir already exist"
 #define DEL_FRIEND_OK "delete friend ok"
 #define DEL_FRIEND_FAILED "delete friend failed"
 
@@ -30,6 +34,8 @@ enum ENUM_MSG_TYPE
     ENUM_MSG_TYPE_FLUSH_FRIEND_RESPOND,
     ENUM_MSG_TYPE_DELETE_FRIEND_REQUEST,
     ENUM_MSG_TYPE_DELETE_FRIEND_RESPOND,
+    ENUM_MSG_TYPE_CREATE_DIR_REQUEST,
+    ENUM_MSG_TYPE_CREATE_DIR_RESPOND,
     ENUM_MSG_TYPE_MAX = 0x00ffffff,
 };
 

@@ -34,8 +34,9 @@ void TcpServer::loadConfig()
 
         m_strIP = strList.at(0);
         m_usPort = strList.at(1).toUShort();
-
-        // qDebug() << "ip: " << m_strIP << " " << m_usPort;
+        MyTcpServer::getInstance().setStrRootPath(strList.at(2));
+        qDebug() << "IP: " << m_strIP << " port: " << m_usPort 
+        << " root path: " << MyTcpServer::getInstance().getStrRootPath();
     }
 
     else{

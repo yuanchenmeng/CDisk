@@ -58,3 +58,12 @@ void MyTcpServer::resend(const char* pername, PDU* pdu){
 
     }
 }
+
+
+QString MyTcpServer::getStrRootPath() const{
+    return m_strRootPath;
+}
+
+void MyTcpServer::setStrRootPath(const QString &strRootPath){
+    m_strRootPath = strRootPath;
+}

@@ -1,6 +1,7 @@
 #include "mytcpsocket.h"
 #include "mytcpserver.h"
 #include <QDebug>
+#include <QDir>
 
 MyTcpSocket::MyTcpSocket(QObject *parent)
     : QTcpSocket{parent}
@@ -32,6 +33,10 @@ void MyTcpSocket::recvMsg(){
             respdu->uiMsgType = ENUM_MSG_TYPE_REGISTER_RESPOND;
             if (ret){
                 strcpy(respdu->caData, "Register is OK ! !");
+
+                QDir dir;
+                ret = dir.mkdir(QString("%1/%2").arg(MyTcpServer::getInstance().getStrRootPath()).arg(caName));
+                qDebug() << "Creating New Folder for new user " << ret;
             }
             else{strcpy(respdu->caData, "Register ff");}
 
@@ -51,20 +56,26 @@ void MyTcpSocket::recvMsg(){
             strncpy(caPwd, pdu->caData + 32, 32);
             //qDebug() << caName << caPwd << pdu->uiMsgType;
             bool ret = OpeDB::getInstance().handleLogin(caName, caPwd);
-            PDU * respdu = mkPDU(0);
-            respdu->uiMsgType = ENUM_MSG_TYPE_LOGIN_RESPOND;
+            PDU *respdu = NULL;
+            
             if (ret){
+                QString strUserRootPath = QString("%1/%2")
+                    .arg(MyTcpServer::getInstance().getStrRootPath()).arg(caName);
+                qDebug() << "Logged User Root Path:" << strUserRootPath;
+                respdu = mkPDU(strUserRootPath.size() + 1);
+                strncpy((char*)respdu -> caMsg, strUserRootPath.toStdString().c_str(), strUserRootPath.size() + 1);
                 strcpy(respdu->caData, "Login is OK ! !");
                 m_strName = caName;
             }
-            else{strcpy(respdu->caData, "Login ff");}
-
+            else{
+                respdu = mkPDU(0);
+                strcpy(respdu->caData, "Login ff");
+            }
+            respdu->uiMsgType = ENUM_MSG_TYPE_LOGIN_RESPOND;
             write((char*)respdu, respdu->uiPDULen);
             free(respdu);
             respdu = NULL;
-
             break;
-
         }
 
 
@@ -217,6 +228,39 @@ void MyTcpSocket::recvMsg(){
                 strncpy(respdu -> caData, DEL_FRIEND_FAILED, 32);
             }
             MyTcpServer::getInstance().resend(deletedName, pdu);
+            free(respdu);
+            respdu = NULL;
+            break;
+        }
+
+        case ENUM_MSG_TYPE_CREATE_DIR_REQUEST:
+        {
+
+            char caDirName[32];
+            char caCurPath[pdu -> uiMsgLen];
+            strncpy(caDirName, pdu -> caData, 32);
+            strncpy(caCurPath, (char*)pdu -> caMsg, pdu -> uiMsgLen);
+
+            QString strDir = QString("%1/%2").arg(caCurPath).arg(caDirName);
+            QDir dir;
+            PDU *respdu = mkPDU(0);
+            respdu -> uiMsgType = ENUM_MSG_TYPE_CREATE_DIR_RESPOND;
+
+            qDebug() << "Handling Creat Dir Req:" << strDir;
+            if(dir.exists(caCurPath)){
+                if(dir.exists(strDir)){
+                    strncpy(respdu -> caData, CREATE_DIR_EXIST, 32);
+                }
+                else{
+                    dir.mkdir(strDir);
+                    strncpy(respdu -> caData, CREATE_DIR_OK, 32);
+                }
+            }
+            else{
+                qDebug() << "Current path is not Valid, check base path!" << strDir;
+                strncpy(respdu -> caData, PATH_NOT_EXIST, 32);
+            }
+            write((char*)respdu, respdu->uiPDULen);
             free(respdu);
             respdu = NULL;
             break;

@@ -28,6 +28,12 @@ public:
 public slots:
     void showConnect();
     void recvMsg();
+
+    QString getStrCurPath() const;
+    void setStrCurPath(const QString &strCurPath);
+    QString getStrRootPath() const;
+    void setStrRootPath(const QString &strRootPath);
+
 private slots:
     void on_send_pb_clicked();
 
@@ -44,5 +50,7 @@ private:
 
     QTcpSocket m_tcpSocket;
     QString m_strLoginName; 
+    QString m_strRootPath;
+    QString m_strCurPath;
 };
 #endif // TCPCLIENT_H

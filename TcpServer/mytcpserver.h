@@ -14,10 +14,14 @@ public:
     static MyTcpServer &getInstance();
     virtual void incomingConnection(qintptr socketDescriptor);
     void resend(const char* pername, PDU* pdu);
+    QString getStrRootPath() const;
+    void setStrRootPath(const QString &strRootPath);
+
 public slots:
     void deleteSocket(MyTcpSocket *mysocket);
 private:
     QList<MyTcpSocket*> m_tcpSocketList;
+    QString m_strRootPath;
 };
 
 #endif // MYTCPSERVER_H

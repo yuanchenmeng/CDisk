@@ -1,4 +1,7 @@
 #include "book.h"
+#include <QInputDialog>
+#include <QMessageBox>
+#include "tcpclient.h"
 
 Book::Book(QWidget *parent)
     : QWidget{parent}
@@ -35,4 +38,24 @@ Book::Book(QWidget *parent)
     pMainVBL -> addWidget(m_pFileListW);
 
     setLayout(pMainVBL);
+
+    
+    connect(m_pCreateDirPB, SIGNAL(clicked(bool)), this, SLOT(createDir()));
+}
+
+void Book::createDir(){
+    QString strDirName = QInputDialog::getText(this, "New Folder", "Folder Name:"); 
+    QString strCurPath = TcpClient::getInstance().getStrCurPath();
+
+    if(strDirName.isEmpty()){
+        QMessageBox::warning(this, "New Folder", "Folder name can't be empty");
+        return ;
+    }
+    PDU *pdu = mkPDU(strCurPath.size() + 1);
+    pdu -> uiMsgType = ENUM_MSG_TYPE_CREATE_DIR_REQUEST;
+    strncpy(pdu -> caData, strDirName.toStdString().c_str(), strDirName.size());
+    memcpy((char*)pdu ->caMsg, strCurPath.toStdString().c_str(), strCurPath.size());
+    TcpClient::getInstance().getTcpSocket().write((char*)pdu, pdu -> uiPDULen);
+    free(pdu);
+    pdu = NULL;
 }
