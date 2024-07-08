@@ -16,18 +16,18 @@ public:
     void updateFileList(PDU* pdu);
 public slots:
     void createDir();
-    void flushDir();   
+    void flushDir();
+    void delFileOrDir(); 
 signals:
 private:
     QListWidget *m_pFileListW;     
     QPushButton *m_pReturnPrePB;   
-    QPushButton *m_pCreateDirPB;   
-    QPushButton *m_pDeleteDirPB;   
+    QPushButton *m_pCreateDirPB;     
     QPushButton *m_pRenameFilePB;  
     QPushButton *m_pFlushDirPB;    
     QPushButton *m_pUploadFilePB;  
     QPushButton *m_pDownloadFilePB;
-    QPushButton *m_pDeleteFilePB;  
+    QPushButton *m_pDelFileOrDirPB; 
     QPushButton *m_pShareFilePB;   
 };
 

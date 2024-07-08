@@ -85,6 +85,7 @@ void TcpClient::recvMsg()
                 QMessageBox::information(this, "Lgt", "Login Sucessful");
                 OpeWidget::getInstance().show();
                 OpeWidget::getInstance().getFriend() -> flushFriendList();
+                OpeWidget::getInstance().getPFileSystem() -> flushDir();
                 this->hide();
 
                 // Save Root Dir logged-in user in tcp client
@@ -190,6 +191,12 @@ void TcpClient::recvMsg()
         case ENUM_MSG_TYPE_FLUSH_DIR_RESPOND:
         {
             OpeWidget::getInstance().getPFileSystem()->updateFileList(pdu);
+            break;
+        }
+
+        case ENUM_MSG_TYPE_DELETE_FILE_RESPOND: 
+        {
+            QMessageBox::information(this, "DEL File/Folder", pdu -> caData);
             break;
         }
 

@@ -310,6 +310,43 @@ void MyTcpSocket::recvMsg(){
         }
 
 
+        case ENUM_MSG_TYPE_DELETE_FILE_REQUEST:
+        {
+            PDU* resPdu = mkPDU(0);
+            char strDelPath[pdu -> uiMsgLen];
+            memcpy(strDelPath, (char*)pdu -> caMsg, pdu -> uiMsgLen);
+            qDebug() << "Socke Del OPs at: " << strDelPath;
+            QDir dir;
+
+            resPdu -> uiMsgType = ENUM_MSG_TYPE_DELETE_FILE_RESPOND;
+            if(!dir.exists(strDelPath)){
+                strncpy(resPdu -> caData, PATH_NOT_EXIST, 32);
+            }
+            else{
+                bool ret = false;
+                QFileInfo fileInfo(strDelPath);
+                if(fileInfo.isDir()){
+                    dir.setPath(strDelPath);
+                    ret = dir.removeRecursively();
+                }
+                else if(fileInfo.isFile()){
+                    ret = dir.remove(strDelPath);
+                }
+                if(ret){
+                    strncpy(resPdu -> caData, DELETE_FILE_OK, 32);
+                }
+                else{
+                    strncpy(resPdu -> caData, DELETE_FILE_FAILED, 32);
+                }
+            }
+            qDebug() << resPdu -> caData;
+            write((char*)resPdu, resPdu->uiPDULen);
+            free(resPdu);
+            resPdu = NULL;
+            break;
+        }
+
+
         default:
             break;
 

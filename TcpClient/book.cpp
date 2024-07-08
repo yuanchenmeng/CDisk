@@ -11,26 +11,24 @@ Book::Book(QWidget *parent)
 
     m_pReturnPrePB = new QPushButton("Back");
     m_pCreateDirPB = new QPushButton("Create New Folder");
-    m_pDeleteDirPB = new QPushButton("Del Folder");
+    m_pDelFileOrDirPB = new QPushButton("Del Folder/File");
     m_pFlushDirPB = new QPushButton("Refresh List");
 
     QHBoxLayout *pDirOpVBL = new QHBoxLayout;
     pDirOpVBL -> addWidget(m_pReturnPrePB);
     pDirOpVBL -> addWidget(m_pCreateDirPB);
-    pDirOpVBL -> addWidget(m_pDeleteDirPB);
+    pDirOpVBL -> addWidget(m_pDelFileOrDirPB);
     pDirOpVBL -> addWidget(m_pFlushDirPB);
 
     m_pRenameFilePB = new QPushButton("Rename File");
     m_pUploadFilePB = new QPushButton("Upload File");
     m_pDownloadFilePB = new QPushButton("Download File");
-    m_pDeleteFilePB = new QPushButton("Del File");
     m_pShareFilePB = new QPushButton("Share File");
 
     QHBoxLayout *pFileOpVBL = new QHBoxLayout;
     pFileOpVBL -> addWidget(m_pRenameFilePB);
     pFileOpVBL -> addWidget(m_pUploadFilePB);
     pFileOpVBL -> addWidget(m_pDownloadFilePB);
-    pFileOpVBL -> addWidget(m_pDeleteFilePB);
     pFileOpVBL -> addWidget(m_pShareFilePB);
 
     QVBoxLayout *pMainVBL = new QVBoxLayout;
@@ -43,6 +41,7 @@ Book::Book(QWidget *parent)
     
     connect(m_pCreateDirPB, SIGNAL(clicked(bool)), this, SLOT(createDir()));
     connect(m_pFlushDirPB, SIGNAL(clicked(bool)), this, SLOT(flushDir()));
+    connect(m_pDelFileOrDirPB, SIGNAL(clicked(bool)), this, SLOT(delFileOrDir()));
 }
 
 void Book::createDir(){
@@ -83,6 +82,10 @@ void Book::updateFileList(PDU *pdu){
 
     for(uint i = 0; i < uiFileNum; ++ i){
         pFileInfo = (FileInfo*)(pdu -> caMsg) + i;
+        if(strcmp(pFileInfo -> caName, ".") == 0 || strcmp(pFileInfo -> caName, "..") == 0)
+        {   // Not show "." or ".."
+            continue;
+        }
         pItem = new QListWidgetItem;
 
         if(pFileInfo ->bIsDir){
@@ -95,4 +98,23 @@ void Book::updateFileList(PDU *pdu){
             .arg(pFileInfo->uiSize).arg(pFileInfo->caTime));
         m_pFileListW->addItem(pItem);
     }
+}
+
+void Book::delFileOrDir(){
+    QString strCurPath = TcpClient::getInstance().getStrCurPath();
+    QListWidgetItem *qItem = m_pFileListW->currentItem();
+    if(NULL == qItem){
+        QMessageBox::warning(this, "DEL File", "Please select the file to delete!");
+        return;
+    }
+    QString strFileName = qItem->text().split('\t')[0];
+    QString strDelPath = QString("%1/%2").arg(strCurPath).arg(strFileName);
+    qDebug() << "DEL obj from path: " << strDelPath;
+    PDU *pdu = mkPDU(strDelPath.size() + 1);
+
+    pdu -> uiMsgType = ENUM_MSG_TYPE_DELETE_FILE_REQUEST;
+    memcpy((char*)pdu ->caMsg, strDelPath.toStdString().c_str(), strDelPath.size());
+    TcpClient::getInstance().getTcpSocket().write((char*)pdu, pdu -> uiPDULen);
+    free(pdu);
+    pdu = NULL;
 }

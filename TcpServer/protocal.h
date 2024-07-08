@@ -15,6 +15,8 @@ typedef unsigned int uint;
 #define CREATE_DIR_EXIST "created dir already exist"
 #define DEL_FRIEND_OK "delete friend ok"
 #define DEL_FRIEND_FAILED "delete friend failed"
+#define DELETE_FILE_OK "delete file ok"
+#define DELETE_FILE_FAILED "delete file failed"
 
 enum ENUM_MSG_TYPE
 {
@@ -39,6 +41,8 @@ enum ENUM_MSG_TYPE
     ENUM_MSG_TYPE_CREATE_DIR_RESPOND,
     ENUM_MSG_TYPE_FLUSH_DIR_REQUEST,
     ENUM_MSG_TYPE_FLUSH_DIR_RESPOND,
+    ENUM_MSG_TYPE_DELETE_FILE_REQUEST,
+    ENUM_MSG_TYPE_DELETE_FILE_RESPOND,
     ENUM_MSG_TYPE_MAX = 0x00ffffff,
 };
 
