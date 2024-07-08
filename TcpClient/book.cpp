@@ -2,6 +2,7 @@
 #include <QInputDialog>
 #include <QMessageBox>
 #include "tcpclient.h"
+#include <QListWidgetItem>
 
 Book::Book(QWidget *parent)
     : QWidget{parent}
@@ -41,6 +42,7 @@ Book::Book(QWidget *parent)
 
     
     connect(m_pCreateDirPB, SIGNAL(clicked(bool)), this, SLOT(createDir()));
+    connect(m_pFlushDirPB, SIGNAL(clicked(bool)), this, SLOT(flushDir()));
 }
 
 void Book::createDir(){
@@ -58,4 +60,39 @@ void Book::createDir(){
     TcpClient::getInstance().getTcpSocket().write((char*)pdu, pdu -> uiPDULen);
     free(pdu);
     pdu = NULL;
+}
+
+
+void Book::flushDir()
+{
+    QString strCurPath = TcpClient::getInstance().getStrCurPath();
+    PDU *pdu = mkPDU(strCurPath.size() + 1);
+    pdu -> uiMsgType = ENUM_MSG_TYPE_FLUSH_DIR_REQUEST;
+    memcpy((char*)pdu ->caMsg, strCurPath.toStdString().c_str(), strCurPath.size());
+    TcpClient::getInstance().getTcpSocket().write((char*)pdu, pdu -> uiPDULen);
+    free(pdu);
+    pdu = NULL;
+}
+
+void Book::updateFileList(PDU *pdu){
+    if(NULL == pdu){return;}
+    uint uiFileNum = pdu -> uiMsgLen / sizeof(FileInfo); 
+    FileInfo *pFileInfo = NULL; 
+    QListWidgetItem *pItem = NULL;
+    m_pFileListW -> clear();
+
+    for(uint i = 0; i < uiFileNum; ++ i){
+        pFileInfo = (FileInfo*)(pdu -> caMsg) + i;
+        pItem = new QListWidgetItem;
+
+        if(pFileInfo ->bIsDir){
+            pItem->setIcon(QIcon(QPixmap(":/icon/dir.jpeg")));
+        }
+        else{
+            pItem->setIcon(QIcon(QPixmap(":/icon/file.jpeg")));
+        }
+        pItem ->setText(QString("%1\t%2\t%3").arg(pFileInfo->caName)
+            .arg(pFileInfo->uiSize).arg(pFileInfo->caTime));
+        m_pFileListW->addItem(pItem);
+    }
 }

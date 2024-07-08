@@ -2,6 +2,7 @@
 #include "mytcpserver.h"
 #include <QDebug>
 #include <QDir>
+#include <QDateTime>
 
 MyTcpSocket::MyTcpSocket(QObject *parent)
     : QTcpSocket{parent}
@@ -263,6 +264,48 @@ void MyTcpSocket::recvMsg(){
             write((char*)respdu, respdu->uiPDULen);
             free(respdu);
             respdu = NULL;
+            break;
+        }
+
+
+
+        case ENUM_MSG_TYPE_FLUSH_DIR_REQUEST: 
+        {
+            char caCurDir[pdu -> uiMsgLen];
+            memcpy(caCurDir, (char*)pdu -> caMsg, pdu -> uiMsgLen);
+            qDebug() << "Socket Handling Retriving Dir Info at: " << caCurDir;
+            QDir dir;
+            PDU* resPdu = NULL;
+
+            if(!dir.exists(caCurDir)){
+                resPdu = mkPDU(0);
+                strncpy(resPdu -> caData, PATH_NOT_EXIST, 32);
+            }
+            else {
+                dir.setPath(caCurDir);
+                QFileInfoList fileInfoList = dir.entryInfoList(); 
+                int iFileNum = fileInfoList.size();
+
+                resPdu = mkPDU(sizeof(FileInfo) * iFileNum);
+                FileInfo *pFileInfo = NULL;
+
+                for(int i = 0; i < iFileNum; ++ i){
+                    pFileInfo = (FileInfo*)(resPdu -> caMsg) + i; // Every shift is (FileInfo*) amount
+                    memcpy(pFileInfo -> caName, fileInfoList[i].fileName().toStdString().c_str(), fileInfoList[i].fileName().size());
+                    pFileInfo -> bIsDir = fileInfoList[i].isDir();
+                    pFileInfo -> uiSize = fileInfoList[i].size();
+                    QDateTime dtLastTime = fileInfoList[i].lastModified();
+                    QString strLastTime = dtLastTime.toString("yyyy/MM/dd hh:mm");
+                    memcpy(pFileInfo -> caTime, strLastTime.toStdString().c_str(), strLastTime.size());
+                    qDebug() << "Current File: " << pFileInfo -> caName << " " << pFileInfo -> bIsDir << " " << pFileInfo -> uiSize << " " << pFileInfo -> caTime;
+                }
+            }
+            resPdu -> uiMsgType = ENUM_MSG_TYPE_FLUSH_DIR_RESPOND;
+
+            write((char*)resPdu, resPdu->uiPDULen);
+            free(resPdu);
+            resPdu = NULL;
+
             break;
         }
 

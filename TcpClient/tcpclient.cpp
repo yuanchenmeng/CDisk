@@ -187,6 +187,12 @@ void TcpClient::recvMsg()
             break;
         }
 
+        case ENUM_MSG_TYPE_FLUSH_DIR_RESPOND:
+        {
+            OpeWidget::getInstance().getPFileSystem()->updateFileList(pdu);
+            break;
+        }
+
 
         default:
             break;

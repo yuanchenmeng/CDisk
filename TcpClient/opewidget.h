@@ -15,6 +15,7 @@ public:
     explicit OpeWidget(QWidget *parent = nullptr);
     static OpeWidget &getInstance();
     Friend *getFriend();
+    Book *getPFileSystem() const;
 
 signals:
 public slots:

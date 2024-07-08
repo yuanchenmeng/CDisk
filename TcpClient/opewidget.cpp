@@ -34,3 +34,7 @@ OpeWidget &OpeWidget::getInstance(){
 Friend *OpeWidget::getFriend(){
     return m_pFriend;
 }
+
+Book *OpeWidget::getPFileSystem() const{
+    return m_pBook;
+}

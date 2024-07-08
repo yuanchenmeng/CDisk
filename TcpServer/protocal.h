@@ -8,7 +8,8 @@
 
 typedef unsigned int uint;
 
-
+#define FLUSH_DIR_OK "flush dir ok" 
+#define FLUSH_DIR_FAILED "flush dir failed"
 #define PATH_NOT_EXIST "path does not exist"
 #define CREATE_DIR_OK "create dir ok"                    
 #define CREATE_DIR_EXIST "created dir already exist"
@@ -36,6 +37,8 @@ enum ENUM_MSG_TYPE
     ENUM_MSG_TYPE_DELETE_FRIEND_RESPOND,
     ENUM_MSG_TYPE_CREATE_DIR_REQUEST,
     ENUM_MSG_TYPE_CREATE_DIR_RESPOND,
+    ENUM_MSG_TYPE_FLUSH_DIR_REQUEST,
+    ENUM_MSG_TYPE_FLUSH_DIR_RESPOND,
     ENUM_MSG_TYPE_MAX = 0x00ffffff,
 };
 
@@ -45,6 +48,15 @@ struct PDU{
     char caData[64];
     uint uiMsgLen;
     int caMsg[];
+};
+
+// File info struct
+struct FileInfo
+{
+    char caName[32];       // File Name
+    bool bIsDir;           // whether is dir, 1: dir 0: file;
+    long long uiSize;      // file size
+    char caTime[128];      // last modified time
 };
 
 PDU *mkPDU(uint uiMsgLen);
