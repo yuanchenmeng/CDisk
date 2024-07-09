@@ -9,10 +9,14 @@ Book::Book(QWidget *parent)
     : QWidget{parent}
 {
     m_strTryEntryDir.clear(); // clear temp path variable
+    m_strUploadFilePath.clear(); // clear temp dir variable
 
     m_pFileListW = new QListWidget;
 
     m_pTimer = new QTimer;
+
+    m_downloadFile = new TransFile;
+    m_downloadFile->bTransform = false;
 
     m_pReturnPrePB = new QPushButton("Back");
     m_pCreateDirPB = new QPushButton("Create New Folder");
@@ -51,6 +55,7 @@ Book::Book(QWidget *parent)
     connect(m_pReturnPrePB, SIGNAL(clicked(bool)), this, SLOT(returnPreDir()));
     connect(m_pUploadFilePB, SIGNAL(clicked(bool)), this, SLOT(uploadFile()));
     connect(m_pTimer, SIGNAL(timeout()), this, SLOT(uploadFileData()));
+    connect(m_pDownloadFilePB, SIGNAL(clicked(bool)), this, SLOT(downloadFile()));
 }
 
 void Book::createDir(){
@@ -250,6 +255,7 @@ void Book::uploadFileData(){
 
     while(true){
         iActualSize = file.read(pBuffer, 4096);
+        qDebug() << "Client Sending to server " << iActualSize;
         if (iActualSize > 0 && iActualSize <= 4096){
             TcpClient::getInstance().getTcpSocket().write(pBuffer, iActualSize);
         }
@@ -265,4 +271,38 @@ void Book::uploadFileData(){
     delete [] pBuffer;
     pBuffer = NULL;
     m_strUploadFilePath.clear();
+}
+
+
+void Book::downloadFile(){
+    QListWidgetItem *pItem = m_pFileListW->currentItem();
+    if(NULL == pItem){
+        QMessageBox::warning(this, "Download File", "Please select File to download");
+        return;
+    }
+
+    QString strDownloadFilePath = QFileDialog::getSaveFileName();
+    if(strDownloadFilePath.isEmpty()){
+        QMessageBox::warning(this, "Download File", "Please select directory for downloading");
+        m_downloadFile->file.setFileName("");  // clear
+        return;
+    }
+
+    m_downloadFile->file.setFileName(strDownloadFilePath);
+
+    QString strCurPath = TcpClient::getInstance().getStrCurPath();
+    QString strFileName = pItem->text().split('\t')[0];
+    PDU* pdu = mkPDU(strCurPath.size() + 1);
+    pdu -> uiMsgType = ENUM_MSG_TYPE_DOWNLOAD_FILE_REQUEST;
+    memcpy((char*)pdu -> caMsg, strCurPath.toStdString().c_str(), strCurPath.size());
+    strncpy(pdu -> caData, strFileName.toStdString().c_str(), strFileName.size());
+    TcpClient::getInstance().getTcpSocket().write((char*)pdu, pdu -> uiPDULen);
+    qDebug() << "Downloading File: " << pdu -> caData;
+
+    free(pdu);
+    pdu = NULL;
+}
+
+TransFile *Book::getDownloadFileInfo(){
+    return m_downloadFile;
 }

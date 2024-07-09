@@ -27,6 +27,9 @@ typedef unsigned int uint;
 #define UPLOAD_FILE_OK "upload file ok"
 #define UPLOAD_FILE_FAILED "upload file failed"
 #define UPLOAD_FILE_START "start upload file data"
+#define DOWNLOAD_FILE_OK "download file ok"
+#define DOWNLOAD_FILE_FAILED "download file failed"
+#define DOWNLOAD_FILE_START "start download file data"
 
 enum ENUM_MSG_TYPE
 {
@@ -61,6 +64,8 @@ enum ENUM_MSG_TYPE
     ENUM_MSG_TYPE_PRE_DIR_RESPOND,
     ENUM_MSG_TYPE_UPLOAD_FILE_REQUEST,
     ENUM_MSG_TYPE_UPLOAD_FILE_RESPOND,
+    ENUM_MSG_TYPE_DOWNLOAD_FILE_REQUEST,
+    ENUM_MSG_TYPE_DOWNLOAD_FILE_RESPOND,
     ENUM_MSG_TYPE_MAX = 0x00ffffff,
 };
 

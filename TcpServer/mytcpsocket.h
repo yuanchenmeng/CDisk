@@ -2,6 +2,7 @@
 #define MYTCPSOCKET_H
 
 #include <QFile>
+#include <QTimer>
 #include <QTcpSocket>
 #include "protocal.h"
 #include "opedb.h"
@@ -17,9 +18,12 @@ signals:
 public slots:
     void recvMsg();
     void clientOffline();
+    void handledownloadFileData();
 private:
     QString m_strName;
-    TransFile* m_uploadFile; // transferring file
+    TransFile* m_uploadFile; // transferring file for uploading
+    QFile *m_pDownloadFile; // transferring file for downloading
+    QTimer *m_pTimer;
 };
 
 #endif // MYTCPSOCKET_H

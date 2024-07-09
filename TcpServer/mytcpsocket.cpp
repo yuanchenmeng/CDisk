@@ -9,15 +9,20 @@ MyTcpSocket::MyTcpSocket(QObject *parent)
 {
     m_uploadFile = new TransFile;
     m_uploadFile->bTransform = false;
+    m_pDownloadFile = new QFile;
+    m_pTimer = new QTimer;
     
     connect(this, SIGNAL(readyRead()), this, SLOT(recvMsg()));
     connect(this, SIGNAL(disconnected()), this, SLOT(clientOffline()));
+    connect(m_pTimer, SIGNAL(timeout()), this, SLOT(handledownloadFileData()));
 }
 
 void MyTcpSocket::recvMsg(){
 
     if(m_uploadFile->bTransform){
+        qDebug() << "Current Available bytes: " << this->bytesAvailable();
         QByteArray baBuffer = this -> readAll();
+        qDebug() << "Socket: receiving " << baBuffer.size() << "from client";
         m_uploadFile->file.write(baBuffer); 
         m_uploadFile->iReceivedSize += baBuffer.size();
         PDU* resPdu = NULL;
@@ -531,7 +536,7 @@ void MyTcpSocket::recvMsg(){
             m_uploadFile->bTransform = true;
             m_uploadFile->iTotalSize = fileSize;
             m_uploadFile->iReceivedSize = 0;
-            qDebug() << "Sever init uploading";
+            qDebug() << "Sever init uploading, Total size required: " << fileSize;
 
             memcpy(resPdu -> caData, UPLOAD_FILE_START, 32);
         }
@@ -544,7 +549,41 @@ void MyTcpSocket::recvMsg(){
         resPdu = NULL;
         break;
     }
+    
 
+
+        case ENUM_MSG_TYPE_DOWNLOAD_FILE_REQUEST:
+        {
+            char caFileName[32] = {'\0'};
+            char caCurPath[pdu -> uiMsgLen];
+            memcpy(caFileName, pdu -> caData, 32);
+            memcpy(caCurPath, (char*)pdu -> caMsg, pdu -> uiMsgLen);
+            QString strDownloadFilePath = QString("%1/%2").arg(caCurPath).arg(caFileName);
+            qDebug() << "File download at path: " << strDownloadFilePath;
+            m_pDownloadFile->setFileName(strDownloadFilePath);
+
+            
+            qint64 fileSize = m_pDownloadFile -> size();
+
+            PDU *resPdu = NULL;
+            if(m_pDownloadFile->open(QIODevice::ReadOnly)){
+                resPdu = mkPDU(32 + sizeof (qint64) + 5);
+                resPdu -> uiMsgType = ENUM_MSG_TYPE_DOWNLOAD_FILE_RESPOND;
+                strncpy(resPdu -> caData, DOWNLOAD_FILE_START, 32);
+                sprintf((char*)resPdu -> caMsg, "%s %lld", caFileName, fileSize);
+                m_pTimer -> start(1000); 
+                qDebug() << (char*)resPdu -> caMsg;
+            }
+            else {
+                resPdu = mkPDU(0);
+                resPdu -> uiMsgType = ENUM_MSG_TYPE_DOWNLOAD_FILE_RESPOND;
+                strncpy(resPdu -> caData, DOWNLOAD_FILE_FAILED, 32);
+            }
+            write((char*)resPdu, resPdu->uiPDULen);
+            free(resPdu);
+            resPdu = NULL;
+            break;
+        }
 
         default:
             break;
@@ -565,4 +604,30 @@ void MyTcpSocket::clientOffline(){
 
 QString MyTcpSocket::getName(){
     return m_strName;
+}
+
+void MyTcpSocket::handledownloadFileData()
+{
+    m_pTimer->stop(); 
+    char *pBuffer = new char[4096];
+    qint64 iActualSize = 0; 
+
+    while(true){
+        iActualSize = m_pDownloadFile->read(pBuffer, 4096);
+        if (iActualSize > 0 && iActualSize <= 4096){
+            this -> write(pBuffer, iActualSize);
+        }
+        else if (iActualSize == 0){ 
+            break;
+        }
+        else{
+            qDebug() << "File download failed to communciate with client";
+            break;
+        }
+    }
+
+    m_pDownloadFile -> close(); 
+    delete [] pBuffer;
+    pBuffer = NULL;
+    m_pDownloadFile->setFileName(""); 
 }

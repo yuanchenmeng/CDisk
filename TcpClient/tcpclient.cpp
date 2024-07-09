@@ -57,6 +57,33 @@ void TcpClient::showConnect()
 
 void TcpClient::recvMsg()
 {
+
+    TransFile *transFile = OpeWidget::getInstance().getPFileSystem()->getDownloadFileInfo();
+    if(transFile->bTransform){
+        QByteArray baBuffer = m_tcpSocket.readAll();
+        transFile->file.write(baBuffer);
+
+        transFile->iReceivedSize += baBuffer.size();
+        if(transFile->iReceivedSize == transFile->iTotalSize){
+            QMessageBox::information(this, "File Downloading", "File download complete");
+            transFile->file.close();
+            transFile->file.setFileName("");
+            transFile->bTransform = false;
+            transFile->iTotalSize = 0;
+            transFile->iReceivedSize = 0;
+        }
+        else if(transFile->iReceivedSize > transFile->iTotalSize){
+            QMessageBox::warning(this, "File Downloading", "File download failed");
+            transFile->file.close();
+            transFile->file.setFileName("");
+            transFile->bTransform = false;
+            transFile->iTotalSize = 0;
+            transFile->iReceivedSize = 0;
+        }
+        return ;
+    }
+
+
     
     uint uiPDULen = 0;
     m_tcpSocket.read((char*)&uiPDULen, sizeof(uint));
@@ -254,6 +281,35 @@ void TcpClient::recvMsg()
             }
             else if(strcmp(UPLOAD_FILE_FAILED, pdu -> caData) == 0) {
                 QMessageBox::warning(this, "File Uploading", pdu -> caData);
+            }
+            break;
+        }
+
+
+
+        case ENUM_MSG_TYPE_DOWNLOAD_FILE_RESPOND:
+        {
+            if(strcmp(DOWNLOAD_FILE_START, pdu -> caData) == 0) {
+                // TransFile *transFile = OperateWidget::getInstance().getPFileSystem()->getDownloadFileInfo();
+                qint64 ifileSize = 0;
+                char strFileName[32];
+                sscanf((char*)pdu -> caMsg, "%s %lld", strFileName, &ifileSize);
+                qDebug() << "Client, File Download: " << strFileName << ifileSize;
+
+                if(strlen(strFileName) > 0 && transFile->file.open(QIODevice::WriteOnly)){
+                    transFile->bTransform = true;
+                    transFile->iTotalSize = ifileSize;
+                    transFile->iReceivedSize = 0;
+                }
+                else{
+                    QMessageBox::warning(this, "File Download", "File Download Failed M2");
+                }
+            }
+            else if(strcmp(DOWNLOAD_FILE_OK, pdu -> caData) == 0){
+                QMessageBox::information(this, "File Download", pdu -> caData);
+            }
+            else if(strcmp(DOWNLOAD_FILE_FAILED, pdu -> caData) == 0) {
+                QMessageBox::warning(this, "File Download", pdu -> caData);
             }
             break;
         }

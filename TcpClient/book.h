@@ -29,6 +29,8 @@ public slots:
     void uploadFile();
     void startTimer();
     void uploadFileData();
+    void downloadFile();
+    TransFile* getDownloadFileInfo();
 signals:
 private:
     QListWidget *m_pFileListW;     
@@ -45,6 +47,7 @@ private:
 
     QString m_strUploadFilePath;    // uploading path
     QTimer *m_pTimer;               // timer, prevents two msg sticking together
+    TransFile *m_downloadFile;      // The file for downloading
 };
 
 #endif // BOOK_H
