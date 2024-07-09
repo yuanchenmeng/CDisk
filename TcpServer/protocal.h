@@ -5,13 +5,14 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <QFile>
 
 typedef unsigned int uint;
 
 #define FLUSH_DIR_OK "flush dir ok" 
 #define FLUSH_DIR_FAILED "flush dir failed"
 #define PATH_NOT_EXIST "path does not exist"
-#define CREATE_DIR_OK "create dir ok"                    
+#define CREATE_DIR_OK "create dir ok" 
 #define CREATE_DIR_EXIST "created dir already exist"
 #define DEL_FRIEND_OK "delete friend ok"
 #define DEL_FRIEND_FAILED "delete friend failed"
@@ -23,7 +24,9 @@ typedef unsigned int uint;
 #define ENTRY_DIR_FAILED "entry dir failed"
 #define PRE_DIR_OK "return pre dir ok" 
 #define PRE_DIR_FAILED "return pre dir failed"
-
+#define UPLOAD_FILE_OK "upload file ok"
+#define UPLOAD_FILE_FAILED "upload file failed"
+#define UPLOAD_FILE_START "start upload file data"
 
 enum ENUM_MSG_TYPE
 {
@@ -56,6 +59,8 @@ enum ENUM_MSG_TYPE
     ENUM_MSG_TYPE_ENTRY_DIR_RESPOND,
     ENUM_MSG_TYPE_PRE_DIR_REQUEST,
     ENUM_MSG_TYPE_PRE_DIR_RESPOND,
+    ENUM_MSG_TYPE_UPLOAD_FILE_REQUEST,
+    ENUM_MSG_TYPE_UPLOAD_FILE_RESPOND,
     ENUM_MSG_TYPE_MAX = 0x00ffffff,
 };
 
@@ -74,6 +79,15 @@ struct FileInfo
     bool bIsDir;           // whether is dir, 1: dir 0: file;
     long long uiSize;      // file size
     char caTime[128];      // last modified time
+};
+
+// File struct when doing uploads and downloads
+struct TransFile
+{
+    QFile file; // QFile obj
+    qint64 iTotalSize; //total file size
+    qint64 iReceivedSize; // received size
+    bool bTransform; // whether it's performing transmission
 };
 
 PDU *mkPDU(uint uiMsgLen);

@@ -244,6 +244,20 @@ void TcpClient::recvMsg()
             break;
         }
 
+        case ENUM_MSG_TYPE_UPLOAD_FILE_RESPOND:
+        {
+            if(strcmp(UPLOAD_FILE_START, pdu -> caData) == 0){
+                OpeWidget::getInstance().getPFileSystem()->startTimer();
+            }
+            else if(strcmp(UPLOAD_FILE_OK, pdu -> caData) == 0) {
+                QMessageBox::information(this, "File Uploading", pdu -> caData);
+            }
+            else if(strcmp(UPLOAD_FILE_FAILED, pdu -> caData) == 0) {
+                QMessageBox::warning(this, "File Uploading", pdu -> caData);
+            }
+            break;
+        }
+
         default:
             break;
     }

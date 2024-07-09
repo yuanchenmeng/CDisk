@@ -7,12 +7,49 @@
 MyTcpSocket::MyTcpSocket(QObject *parent)
     : QTcpSocket{parent}
 {
+    m_uploadFile = new TransFile;
+    m_uploadFile->bTransform = false;
+    
     connect(this, SIGNAL(readyRead()), this, SLOT(recvMsg()));
-
     connect(this, SIGNAL(disconnected()), this, SLOT(clientOffline()));
 }
 
 void MyTcpSocket::recvMsg(){
+
+    if(m_uploadFile->bTransform){
+        QByteArray baBuffer = this -> readAll();
+        m_uploadFile->file.write(baBuffer); 
+        m_uploadFile->iReceivedSize += baBuffer.size();
+        PDU* resPdu = NULL;
+
+        qDebug() << "Socket: File Uploading ..." << m_uploadFile->iReceivedSize;
+
+        if(m_uploadFile->iReceivedSize == m_uploadFile->iTotalSize){
+            m_uploadFile->file.close();
+            m_uploadFile->bTransform = false;
+
+            resPdu = mkPDU(0);
+            resPdu -> uiMsgType = ENUM_MSG_TYPE_UPLOAD_FILE_RESPOND;
+            strncpy(resPdu -> caData, UPLOAD_FILE_OK, 32);
+        }
+        else if(m_uploadFile -> iReceivedSize > m_uploadFile->iTotalSize){
+            m_uploadFile->file.close();
+            m_uploadFile->bTransform = false;
+
+            resPdu = mkPDU(0);
+            resPdu -> uiMsgType = ENUM_MSG_TYPE_UPLOAD_FILE_RESPOND;
+            strncpy(resPdu -> caData, UPLOAD_FILE_FAILED, 32);
+        }
+
+        if(NULL != resPdu){
+            this -> write((char*)resPdu, resPdu -> uiPDULen);
+            free(resPdu);
+            resPdu = NULL;
+        }
+        return;
+    }
+
+
     qDebug() << this->bytesAvailable();
     uint uiPDULen = 0;
     this->read((char*)&uiPDULen, sizeof(uint));
@@ -474,6 +511,39 @@ void MyTcpSocket::recvMsg(){
             resPdu = NULL;
             break;
         }
+
+    case ENUM_MSG_TYPE_UPLOAD_FILE_REQUEST:
+    {
+        char caCurPath[pdu -> uiMsgLen];
+        char caFileName[32] = {'\0'};
+        qint64 fileSize = 0;
+
+        strncpy(caCurPath, (char*)pdu -> caMsg, pdu -> uiMsgLen);
+        sscanf(pdu -> caData, "%s %lld", caFileName, &fileSize);
+        QString strFilePath = QString("%1/%2").arg(caCurPath).arg(caFileName);
+        qDebug() << "Sever about to upload" << strFilePath;
+
+        PDU* resPdu = mkPDU(0);
+        resPdu -> uiMsgType = ENUM_MSG_TYPE_UPLOAD_FILE_RESPOND;
+
+        m_uploadFile->file.setFileName(strFilePath); 
+        if(m_uploadFile->file.open(QIODevice::WriteOnly)){
+            m_uploadFile->bTransform = true;
+            m_uploadFile->iTotalSize = fileSize;
+            m_uploadFile->iReceivedSize = 0;
+            qDebug() << "Sever init uploading";
+
+            memcpy(resPdu -> caData, UPLOAD_FILE_START, 32);
+        }
+        else{
+            qDebug() << "Sever init uploading failed";
+            memcpy(resPdu -> caData, UPLOAD_FILE_FAILED, 32);
+        }
+        write((char*)resPdu, resPdu->uiPDULen);
+        free(resPdu);
+        resPdu = NULL;
+        break;
+    }
 
 
         default:

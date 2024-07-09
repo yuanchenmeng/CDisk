@@ -6,6 +6,7 @@
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <QTimer>
 #include "protocal.h"
 
 class Book : public QWidget
@@ -25,6 +26,9 @@ public slots:
     void renameFile();
     void entryDir(const QModelIndex &index);
     void returnPreDir();
+    void uploadFile();
+    void startTimer();
+    void uploadFileData();
 signals:
 private:
     QListWidget *m_pFileListW;     
@@ -38,6 +42,9 @@ private:
     QPushButton *m_pShareFilePB;
 
     QString m_strTryEntryDir;         // temp for director entry
+
+    QString m_strUploadFilePath;    // uploading path
+    QTimer *m_pTimer;               // timer, prevents two msg sticking together
 };
 
 #endif // BOOK_H

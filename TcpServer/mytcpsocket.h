@@ -1,6 +1,7 @@
 #ifndef MYTCPSOCKET_H
 #define MYTCPSOCKET_H
 
+#include <QFile>
 #include <QTcpSocket>
 #include "protocal.h"
 #include "opedb.h"
@@ -18,6 +19,7 @@ public slots:
     void clientOffline();
 private:
     QString m_strName;
+    TransFile* m_uploadFile; // transferring file
 };
 
 #endif // MYTCPSOCKET_H
